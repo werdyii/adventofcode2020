@@ -26,62 +26,40 @@ In this example, a single shiny gold bag must contain 126 other bags.
 
 How many individual bags are required inside your single shiny gold bag?
 */
-$i = 1; $total = 0;
-$lines = file('adventofcode.com_2020_day_7_input_vzor.txt');
+$lines = file('adventofcode.com_2020_day_7_input.txt');
+
 foreach ($lines as $line_num => $line) {
 	$line = trim( $line );
 	$words = explode(" ", $line);
 	$part = substr_count($line, ',');
 	//preg_match_all('/\s+/', $line, $words);
-	$data[$i] = array(
-		"id" => $i,
-		"bag" => $words[0].$words[1],
-		"use" => 0,
-		"parent_id" => 0,
-		'child' => array(),
-	);
-	$parent_id = $i;
-	$i++;
+	$strom[ $words[0].$words[1] ] = array();
 	if( $words[4] == "no" ) continue;
 	for($n = 0; $n <= $part; $n++){
-		$data[$i] = array(
-			"id" => $i,
-			"bag" => $words[5 + ($n * 4)].$words[6 + ($n * 4)],
-			"count" => $words[4 + ($n * 4)],
-			"parent_id" => $parent_id,
-		);
-		$data[$parent_id]['child'][] = $i;
-		$i++;
+		$strom[ $words[0].$words[1] ] [
+			$words[5 + ($n * 4)].$words[6 + ($n * 4)]
+		] =  $words[4 + ($n * 4)];
 	}
-
 	// print_r( $words );
 	// echo "\n";
 }
-// print_r( $data );
+//print_r( $strom ); die();
 
-function travers($bag_color, $data)
+
+function travers($strom, $node)
 {
-	$total = 0;
-	foreach ($data as $bag) {
-		if(( $bag['bag'] == $bag_color ) && ( $bag['parent_id'] == 0) ){
-			echo "\n farba: ".$bag_color." detí  ".count($bag['child']);
-			if( count($bag['child']) > 0)
-				foreach ($bag['child'] as $value) {
-					$total = $data[ $value ][ 'count' ];
-					echo "\n total: ".$total;
-					$child_count = travers( $data[ $value ][ 'bag' ] , $data );
-					echo "  child_count: ".$child_count;
-					$total += $total * $child_count;
-				};
-		}
+	$pocet = 1;
+	foreach ( $strom[$node] as $sused => $mnozstvo ) {
+		echo "\n node: ".$node." sused: ".$sused." pocet: ".$mnozstvo;
+		$pocet += $mnozstvo * travers( $strom, $sused);
 	}
-	return $total;
+	return $pocet;
 }
 
 // $total = array_unique(travers("shinygold", $data));
 
 // echo "\nID total: ". $total;
-echo "\nID total: ". travers("shinygold", $data);
+echo "\nID total: ". ( travers( $strom, "shinygold") - 1 );
 // echo "\nID total: ".( count( $total) - 1);
 // print_r($total);
 echo "\nOK - koniec";
